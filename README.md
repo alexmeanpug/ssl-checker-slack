@@ -32,7 +32,7 @@ Before using the script, ensure the following prerequisites are met:
     git clone https://github.com/yourusername/ssl-checker-script.git
     cd ssl-checker-script
     ```
-2. **Open the script file (`ssl_checker.sh`) and update the `SLACK_WEBHOOK_URL` variable with your Slack Incoming Webhook URL.**
+2. **Open the script file (`ssl-domains.sh`) and update the `SLACK_WEBHOOK_URL` variable with your Slack Incoming Webhook URL.**
 3. **Make the script executable:**
     ```bash
     chmod +x ssl-domains.sh
@@ -40,7 +40,7 @@ Before using the script, ensure the following prerequisites are met:
 4. **Edit the `DOMAINS` array in the script, adding domains and their corresponding Slack channels.**
 5. **Run the script:**
     ```bash
-    ./ssl_checker.sh
+    ./ssl-domains.sh
     ```
 
 ## Configuration
