@@ -29,8 +29,8 @@ Before using the script, ensure the following prerequisites are met:
 
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/yourusername/ssl-checker-script.git
-    cd ssl-checker-script
+    git clone [https://github.com/yourusername/ssl-checker-script.git](https://github.com/alexmeanpug/ssl-checker-slack)
+    cd ssl-checker-slack
     ```
 2. **Open the script file (`ssl-domains.sh`) and update the `SLACK_WEBHOOK_URL` variable with your Slack Incoming Webhook URL.**
 3. **Make the script executable:**
