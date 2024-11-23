@@ -1,10 +1,45 @@
 #!/bin/bash
+# Script to check SSL certificate expiration for multiple domains and send notifications to Slack
+#
+# Dependencies: dig, openssl, gdate, curl
+# License: MIT
+
+# Check that required tools are installed
+required_tools=("dig" "openssl" "gdate" "curl")
+
+for tool in "${required_tools[@]}"; do
+  if ! command -v "$tool" &>/dev/null; then
+    echo "Command '$tool' not found! Please install it."
+    exit 1
+  fi
+done
+
+# Check that .env file exists
+if [[ ! -f ".env" ]]; then
+  echo "File .env not found! Check the example file (.env.example) for reference and save it as .env."
+  exit 1
+fi
+
+# As .env file format is KEY=VALUE, we can source it to set the variables
+source .env
+
+# If SLACK_WEBHOOK_URL contains 'XXXXXXX' then it's not set, exit with an error
+if [[ "$SLACK_WEBHOOK_URL" == *"XXXXXXX"* ]]; then
+  echo "SLACK_WEBHOOK_URL is not set! Please set it in the .env file."
+  exit 1
+fi
+
+# File containing domain and Slack channel information
+file="domains_channels.txt"
+
+# Check if the file exists
+if [[ ! -f "$file" ]]; then
+  echo "File $file not found! Check the example file ($file.example) for reference and save it as $file."
+  exit 1
+fi
 
 # Function to send notifications to Slack
 notify() {
-  SLACK_WEBHOOK_URL="https://hooks.slack.com/services/XXXXXXX/XXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXX"
-  SLACK_BOTNAME="SSL Checker"
-
   DOMAIN="$1"
   EXPIRY_DAYS="$2"
   EXPIRY_DATE="$3"
@@ -36,7 +71,7 @@ check_expiry_days() {
   local expiry_epoch=$(gdate -u -d "$expiry_date" +"%s")
 
   # Calculate and echo the remaining days
-  echo $(( (expiry_epoch - current_date) / (60*60*24) ))
+  echo $(((expiry_epoch - current_date) / (60 * 60 * 24)))
 }
 
 # Function to check SSL certificate for a domain and send notifications
@@ -76,14 +111,18 @@ check_certs() {
   done < <(dig +noall +answer +short "$name")
 }
 
-# Add more domains to the list with Slack channels
-DOMAINS=(
-  "google.com: #general"
-  "instagram.com: #general"
-)
-
 # Loop through each domain-channel pair and check certificates
-for domain_channel in "${DOMAINS[@]}"; do
-  IFS=":" read -r domain slack_channel <<< "$domain_channel"
+while IFS=':' read -r domain slack_channel; do
+  # Skip empty lines
+  [[ -z "$domain" || -z "$slack_channel" ]] && continue
+
+  # If domain contains http:// or https:// remove it
+  domain=$(echo "$domain" | sed -e 's/https\?:\/\///')
+
+  # If slack_channels doesn't start with # add it
+  if [[ ! "$slack_channel" =~ ^# ]]; then
+    slack_channel="#$slack_channel"
+  fi
+
   check_certs "$domain" "$slack_channel"
-done
+done <"$file"
